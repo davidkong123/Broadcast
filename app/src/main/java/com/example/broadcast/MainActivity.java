@@ -27,25 +27,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ImageView img;
     double bmi = 18.5;
     IntentFilter filter;
-    MyReceiver myReceiver;
+    IncomingCall_Receiver incomingCall_receiver;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECEIVE_SMS},1);
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS},1);
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE},1);
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_NUMBERS},1);
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALL_LOG},1);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG, Manifest.permission.SEND_SMS},1);
         weight  = findViewById(R.id.weight);
         height = findViewById(R.id.height);
         enter = findViewById(R.id.enter);
         txt = findViewById(R.id.txt);
         img = findViewById(R.id.img);
-        myReceiver = new MyReceiver();
-        filter = new IntentFilter("android.intent.action.PHONE_STATE");
-        registerReceiver(myReceiver,filter);
         enter.setOnClickListener(this::onClick);
+        incomingCall_receiver = new IncomingCall_Receiver();
+        filter = new IntentFilter("android.intent.action.PHONE_STATE");
+        registerReceiver(incomingCall_receiver,filter);
     }
     public void onClick(View view){
 
@@ -93,13 +89,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return super.onOptionsItemSelected(item);
     }
     @Override
-    public void onStop(){
-        super.onStop();
-        unregisterReceiver(myReceiver);
-    }
-    @Override
-    public void onStart(){
+    public void onStart() {
         super.onStart();
-        registerReceiver(myReceiver,filter);
+        registerReceiver(incomingCall_receiver, filter);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        try {
+            unregisterReceiver(incomingCall_receiver);
+        }
+        catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        registerReceiver(incomingCall_receiver, filter);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        try {
+            unregisterReceiver(incomingCall_receiver);
+        }
+        catch (IllegalArgumentException e) {
+        }
     }
 }
